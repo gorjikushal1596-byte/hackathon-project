@@ -1,6 +1,6 @@
 /**
  * Service to fetch and extract raw HTML from live URLs
- * Uses CORS-resilient proxies for browser compatibility.
+ * Uses local Node.js server scraping middleware as primary, with resilient fallback proxies.
  */
 
 export interface UrlFetchResult {
@@ -13,16 +13,16 @@ export interface UrlFetchResult {
 
 export const PRESET_LIVE_URLS = [
   {
+    name: 'Wikipedia (Web Accessibility)',
+    url: 'https://en.wikipedia.org/wiki/Web_accessibility',
+  },
+  {
     name: 'Example Domain (Simple HTML)',
     url: 'https://example.com',
   },
   {
     name: 'W3C Accessibility Overview',
     url: 'https://www.w3.org/WAI/fundamentals/accessibility-intro/',
-  },
-  {
-    name: 'Wikipedia Main Portal',
-    url: 'https://en.wikipedia.org/wiki/Main_Page',
   },
 ];
 
@@ -43,16 +43,21 @@ export async function fetchHtmlFromUrl(targetUrl: string): Promise<UrlFetchResul
     };
   }
 
-  // Proxies to try in sequence for CORS compatibility in browser environments
-  const proxyEndpoints = [
+  // Endpoints to try in order of speed and reliability:
+  // 1. Local Vite dev server backend scraper (/api/scrape) - 0 CORS restrictions, fast, reliable
+  // 2. AllOrigins raw proxy
+  // 3. CodeTabs proxy
+  // 4. CorsProxy.io
+  const endpoints = [
+    `/api/scrape?url=${encodeURIComponent(cleanedUrl)}`,
     `https://api.allorigins.win/raw?url=${encodeURIComponent(cleanedUrl)}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(cleanedUrl)}`,
     `https://corsproxy.io/?url=${encodeURIComponent(cleanedUrl)}`,
-    cleanedUrl, // direct attempt
   ];
 
   let lastError = 'Failed to retrieve website HTML.';
 
-  for (const endpoint of proxyEndpoints) {
+  for (const endpoint of endpoints) {
     try {
       const response = await fetch(endpoint, {
         headers: {
@@ -61,7 +66,13 @@ export async function fetchHtmlFromUrl(targetUrl: string): Promise<UrlFetchResul
       });
 
       if (!response.ok) {
-        lastError = `HTTP error ${response.status}: ${response.statusText}`;
+        let errJson: any = null;
+        try {
+          errJson = await response.json();
+        } catch {
+          // ignore
+        }
+        lastError = errJson?.error || `HTTP error ${response.status}: ${response.statusText}`;
         continue;
       }
 
@@ -83,6 +94,6 @@ export async function fetchHtmlFromUrl(targetUrl: string): Promise<UrlFetchResul
     url: cleanedUrl,
     html: '',
     status: 'error',
-    error: `Unable to fetch ${cleanedUrl} directly due to CORS restrictions or server timeout (${lastError}). Try uploading an exported .html file or pasting the page source directly.`,
+    error: `Unable to fetch ${cleanedUrl} (${lastError}). Try uploading an exported .html file or pasting the page source directly.`,
   };
 }
