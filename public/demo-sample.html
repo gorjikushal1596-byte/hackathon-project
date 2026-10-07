@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Novacorp Cloud - Enterprise Signup</title>
+</head>
+<body>
+  <!-- 1. Header with unlabelled logo & empty cart icon -->
+  <header>
+    <img src="/assets/novacorp-logo.svg">
+    <nav>
+      <a href="/pricing">Pricing Plans</a>
+      <a href="/docs">Documentation</a>
+      <a href="/checkout"></a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- 2. Skipped Heading Hierarchy (h1 directly to h4) -->
+    <h1>Create Your Cloud Workspace</h1>
+    <h4>Start your 14-day enterprise trial</h4>
+
+    <!-- 3. Feature Banner with missing alt description -->
+    <section class="banner">
+      <img src="https://images.unsplash.com/photo-cloud-servers.jpg">
+      <p>Deploy globally distributed container clusters in seconds.</p>
+    </section>
+
+    <!-- 4. Form controls lacking accessible labels -->
+    <form class="signup-form">
+      <input type="text" name="full_name" placeholder="Full Name">
+      <input type="email" name="work_email" placeholder="Work Email Address">
+      <input type="password" name="account_password" placeholder="Create Strong Password">
+      <input type="text" name="company_name" placeholder="Organization Name">
+      
+      <!-- 5. Empty Icon-Only Submit Button -->
+      <button type="submit" class="submit-btn"></button>
+    </form>
+  </main>
+</body>
+</html>

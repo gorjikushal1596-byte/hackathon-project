@@ -262,13 +262,22 @@ export const HtmlInputSection: React.FC<HtmlInputSectionProps> = ({
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '0.35rem' }}>
                 {uploadedFileName ? uploadedFileName : 'Drag & Drop HTML File Here'}
               </h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Supports <code>.html</code>, <code>.htm</code>, and raw web template files &bull; Instant client-side parsing
-              </p>
-              <button type="button" className="btn btn-secondary btn-sm" style={{ marginTop: '0.75rem' }}>
-                <FileCode size={13} />
-                <span>Browse Local Files</span>
-              </button>
+              <div style={{ display: 'flex', gap: '0.65rem', marginTop: '0.85rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <button type="button" className="btn btn-primary btn-sm">
+                  <FileCode size={13} />
+                  <span>Browse Local Files</span>
+                </button>
+                <a
+                  href="/demo-sample.html"
+                  download="novacorp-demo-sample.html"
+                  onClick={(e) => e.stopPropagation()}
+                  className="btn btn-secondary btn-sm"
+                  title="Download ready-to-test sample HTML file to your Downloads folder"
+                >
+                  <UploadCloud size={13} style={{ transform: 'rotate(180deg)' }} />
+                  <span>Download Demo Sample File (.html)</span>
+                </a>
+              </div>
             </div>
           </div>
         )}
