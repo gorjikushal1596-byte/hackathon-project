@@ -1,9 +1,11 @@
+import { db } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { AuditReport } from '../types';
+import { RepairResult } from '../utils/repairEngine';
 
 /**
  * AccessFix Audit Service
- * Initial service layer foundation for accessibility scans and fixes.
- * Can be connected to axe-core, backend APIs, or Firebase in subsequent phases.
+ * Service layer foundation for accessibility scans, remediation, and Firestore history.
  */
 
 export const mockSampleReport: AuditReport = {
@@ -62,6 +64,31 @@ export const mockSampleReport: AuditReport = {
   ],
 };
 
+/**
+ * Save repair audit result to Cloud Firestore audit_history collection.
+ */
+export async function saveAuditRecord(
+  repairResult: RepairResult,
+  originalHtml: string,
+  url?: string
+): Promise<string> {
+  try {
+    const docRef = await addDoc(collection(db, 'audit_history'), {
+      url: url || 'Direct HTML Snippet',
+      originalHtml,
+      repairedHtml: repairResult.repairedHtml,
+      changesCount: repairResult.changes.length,
+      skippedCount: repairResult.skipped.length,
+      changes: repairResult.changes,
+      createdAt: serverTimestamp(),
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error saving audit record to Firestore:', error);
+    throw error;
+  }
+}
+
 export const auditService = {
   /**
    * Fetch initial sample audit data
@@ -88,4 +115,9 @@ export const auditService = {
       }, 500);
     });
   },
+
+  /**
+   * Save repair and audit record to Firestore
+   */
+  saveAuditRecord,
 };
