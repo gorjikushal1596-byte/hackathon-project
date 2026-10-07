@@ -1,4 +1,5 @@
 export * from './auditService';
+export * from './urlFetchService';
 export { firestoreService } from './firestoreService';
 export { accessibilityScanner } from './accessibilityScanner';
 export { calculateAccessibilityScore } from './scoringService';
