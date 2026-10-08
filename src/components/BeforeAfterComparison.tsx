@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Columns, Eye, CheckCircle2, ArrowRight, ShieldCheck, Copy, Check } from 'lucide-react';
 import { formatScore } from '../utils';
+import { DisabilitySimulator } from './DisabilitySimulator';
 
 interface BeforeAfterComparisonProps {
   scanResult: any;
@@ -203,6 +204,12 @@ export const BeforeAfterComparison: React.FC<BeforeAfterComparisonProps> = ({
             </pre>
           )}
         </div>
+
+        {/* 🌟 Killer Differentiator Feature: Live Disability Perspective Simulator */}
+        <DisabilitySimulator
+          originalHtml={originalHtml}
+          repairedHtml={repairedHtml}
+        />
       </div>
     </section>
   );

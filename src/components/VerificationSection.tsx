@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ShieldCheck,
   CheckCircle2,
   AlertTriangle,
   Database,
-  ArrowRight,
-  Sparkles,
   Download,
+  Award,
+  GitBranch,
 } from 'lucide-react';
 import { formatScore } from '../utils';
+import { ComplianceCertificateModal } from './ComplianceCertificateModal';
+import { CiCdExporterModal } from './CiCdExporterModal';
 
 interface VerificationSectionProps {
   scanResult: any;
@@ -31,6 +33,9 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({
   historySaved,
   isSavingHistory,
 }) => {
+  const [isCertOpen, setIsCertOpen] = useState<boolean>(false);
+  const [isCiCdOpen, setIsCiCdOpen] = useState<boolean>(false);
+
   const isVerified = !!verificationResult;
   const originalIssues = scanResult.findings || [];
   const resolvedIssues = verificationResult?.fixedIssues || verificationResult?.resolvedFindings || originalIssues;
@@ -146,6 +151,27 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({
 
               <button
                 type="button"
+                onClick={() => setIsCertOpen(true)}
+                className="btn btn-secondary btn-lg"
+                style={{ borderColor: 'rgba(245, 158, 11, 0.4)', color: '#fde047' }}
+                aria-label="Generate official WCAG compliance certificate"
+              >
+                <Award size={16} className="text-warning" />
+                <span>Official WCAG Certificate</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsCiCdOpen(true)}
+                className="btn btn-secondary btn-lg"
+                aria-label="Export CI/CD GitHub Actions pipeline"
+              >
+                <GitBranch size={16} />
+                <span>CI/CD Pipeline Gate</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={handleExportReport}
                 className="btn btn-secondary btn-lg"
                 aria-label="Export full JSON audit report"
@@ -244,6 +270,23 @@ export const VerificationSection: React.FC<VerificationSectionProps> = ({
           </>
         )}
       </div>
+
+      {/* Official WCAG Certificate Modal */}
+      <ComplianceCertificateModal
+        isOpen={isCertOpen}
+        onClose={() => setIsCertOpen(false)}
+        targetTitle="Web Application HTML Markup"
+        scoreBefore={scanResult.score}
+        scoreAfter={finalScore}
+        fixedCount={resolvedIssues.length}
+        timestamp={new Date().toISOString()}
+      />
+
+      {/* CI/CD GitHub Actions Modal */}
+      <CiCdExporterModal
+        isOpen={isCiCdOpen}
+        onClose={() => setIsCiCdOpen(false)}
+      />
     </section>
   );
 };
