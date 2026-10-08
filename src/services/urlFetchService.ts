@@ -13,6 +13,10 @@ export interface UrlFetchResult {
 
 export const PRESET_LIVE_URLS = [
   {
+    name: 'Google Search (google.com)',
+    url: 'https://www.google.com',
+  },
+  {
     name: 'Wikipedia (Web Accessibility)',
     url: 'https://en.wikipedia.org/wiki/Web_accessibility',
   },
@@ -39,7 +43,7 @@ export async function fetchHtmlFromUrl(targetUrl: string): Promise<UrlFetchResul
       url: targetUrl,
       html: '',
       status: 'error',
-      error: 'Please enter a valid website URL (e.g. https://example.com).',
+      error: 'Please enter a valid website URL (e.g. https://www.google.com).',
     };
   }
 

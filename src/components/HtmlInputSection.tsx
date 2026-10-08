@@ -38,7 +38,7 @@ export const HtmlInputSection: React.FC<HtmlInputSectionProps> = ({
   isScanning,
 }) => {
   const [inputMode, setInputMode] = useState<InputMode>('editor');
-  const [urlInput, setUrlInput] = useState<string>('https://example.com');
+  const [urlInput, setUrlInput] = useState<string>('https://www.google.com');
   const [isFetchingUrl, setIsFetchingUrl] = useState<boolean>(false);
   const [urlFetchError, setUrlFetchError] = useState<string | null>(null);
   const [loadedSourceMeta, setLoadedSourceMeta] = useState<string | null>(null);
