@@ -22,33 +22,63 @@ function scrapePlugin(): Plugin {
             targetUrl = `https://${targetUrl}`;
           }
 
-          // Fetch target with real browser headers and follow redirects
-          const fetchRes = await fetch(targetUrl, {
-            method: 'GET',
-            redirect: 'follow',
-            headers: {
-              'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-              'Accept':
-                'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-              'Accept-Language': 'en-US,en;q=0.9',
-              'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124"',
-              'Sec-Ch-Ua-Mobile': '?0',
-              'Sec-Ch-Ua-Platform': '"Windows"',
-              'Sec-Fetch-Dest': 'document',
-              'Sec-Fetch-Mode': 'navigate',
-              'Sec-Fetch-Site': 'none',
-              'Sec-Fetch-User': '?1',
-              'Upgrade-Insecure-Requests': '1',
-            },
-          });
+          const browserHeaders = {
+            'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept':
+              'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124"',
+            'Sec-Ch-Ua-Mobile': '?0',
+            'Sec-Ch-Ua-Platform': '"Windows"',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Upgrade-Insecure-Requests': '1',
+          };
+
+          // Helper to fetch with 12-second timeout
+          const fetchWithTimeout = async (url: string) => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
+            try {
+              const response = await fetch(url, {
+                method: 'GET',
+                redirect: 'follow',
+                signal: controller.signal,
+                headers: browserHeaders,
+              });
+              clearTimeout(timeoutId);
+              return response;
+            } catch (err) {
+              clearTimeout(timeoutId);
+              throw err;
+            }
+          };
+
+          let fetchRes: Response;
+          try {
+            fetchRes = await fetchWithTimeout(targetUrl);
+          } catch (firstErr: any) {
+            // If HTTPS fails with connection error, try HTTP fallback
+            if (targetUrl.startsWith('https://')) {
+              try {
+                fetchRes = await fetchWithTimeout(targetUrl.replace('https://', 'http://'));
+              } catch {
+                throw firstErr;
+              }
+            } else {
+              throw firstErr;
+            }
+          }
 
           if (!fetchRes.ok) {
             res.statusCode = fetchRes.status;
             res.setHeader('Content-Type', 'application/json');
             res.end(
               JSON.stringify({
-                error: `Failed to fetch target URL (HTTP ${fetchRes.status}: ${fetchRes.statusText})`,
+                error: `Failed to fetch website (HTTP ${fetchRes.status}: ${fetchRes.statusText})`,
               })
             );
             return;
@@ -56,13 +86,14 @@ function scrapePlugin(): Plugin {
 
           const html = await fetchRes.text();
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.setHeader('Access-Control-Allow-Origin', '*');
           res.end(html);
         } catch (err: any) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json');
           res.end(
             JSON.stringify({
-              error: err.message || 'Server scraping error',
+              error: err.name === 'AbortError' ? 'Target website request timed out (12s limit)' : err.message || 'Server scraping error',
             })
           );
         }

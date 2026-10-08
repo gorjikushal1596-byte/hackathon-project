@@ -177,7 +177,10 @@ export const HtmlInputSection: React.FC<HtmlInputSectionProps> = ({
                 type="url"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="Enter live website URL (e.g. https://example.com)"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleFetchUrl();
+                }}
+                placeholder="Enter any live website URL (e.g. https://google.com, wikipedia.org, reddit.com)"
                 className="url-text-field"
                 aria-label="Website URL to crawl and scrape HTML from"
               />

@@ -1,5 +1,5 @@
 /**
- * Service to fetch and extract raw HTML from live URLs
+ * Service to fetch and extract raw HTML from ANY live URL
  * Uses local Node.js server scraping middleware as primary, with resilient fallback proxies.
  */
 
@@ -13,7 +13,7 @@ export interface UrlFetchResult {
 
 export const PRESET_LIVE_URLS = [
   {
-    name: 'Google Search (google.com)',
+    name: 'Google (google.com)',
     url: 'https://www.google.com',
   },
   {
@@ -21,12 +21,16 @@ export const PRESET_LIVE_URLS = [
     url: 'https://en.wikipedia.org/wiki/Web_accessibility',
   },
   {
-    name: 'Example Domain (Simple HTML)',
-    url: 'https://example.com',
+    name: 'Hacker News (ycombinator.com)',
+    url: 'https://news.ycombinator.com',
   },
   {
-    name: 'W3C Accessibility Overview',
+    name: 'W3C Accessibility Portal',
     url: 'https://www.w3.org/WAI/fundamentals/accessibility-intro/',
+  },
+  {
+    name: 'Example Domain (Minimal HTML)',
+    url: 'https://example.com',
   },
 ];
 
@@ -43,7 +47,7 @@ export async function fetchHtmlFromUrl(targetUrl: string): Promise<UrlFetchResul
       url: targetUrl,
       html: '',
       status: 'error',
-      error: 'Please enter a valid website URL (e.g. https://www.google.com).',
+      error: 'Please enter a valid website URL (e.g. https://www.google.com or wikipedia.org).',
     };
   }
 
@@ -63,11 +67,17 @@ export async function fetchHtmlFromUrl(targetUrl: string): Promise<UrlFetchResul
 
   for (const endpoint of endpoints) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+
       const response = await fetch(endpoint, {
+        signal: controller.signal,
         headers: {
           Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         },
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         let errJson: any = null;
@@ -89,8 +99,8 @@ export async function fetchHtmlFromUrl(targetUrl: string): Promise<UrlFetchResul
           byteSize: new Blob([html]).size,
         };
       }
-    } catch (err) {
-      lastError = err instanceof Error ? err.message : 'Network request failed';
+    } catch (err: any) {
+      lastError = err.name === 'AbortError' ? 'Request timed out' : err instanceof Error ? err.message : 'Network request failed';
     }
   }
 
@@ -98,6 +108,6 @@ export async function fetchHtmlFromUrl(targetUrl: string): Promise<UrlFetchResul
     url: cleanedUrl,
     html: '',
     status: 'error',
-    error: `Unable to fetch ${cleanedUrl} (${lastError}). Try uploading an exported .html file or pasting the page source directly.`,
+    error: `Unable to fetch ${cleanedUrl} (${lastError}). You can also save the page via Ctrl+S and upload the .html file!`,
   };
 }
